@@ -5,7 +5,10 @@
 
 frameBuffer: .space 262144	# El frameBuffer ocupa toda la pantalla, es decir; 256x256 x 4 bytes para cada uno
 color_fondo: .word 0xadd8ff
-color_celdas: .word 0xffffff
+color_kite: .word 0xffffff
+
+x_k: .word 8
+y_k: .word 8
 
 .text
 .globl main 		 	# Variables globales
@@ -19,6 +22,8 @@ sw $t1, 0($t0)            	# Guardar el color en la dirección actual
 addi $t0, $t0, 4          	# Mover a la siguiente posición de píxel
 addi $t2, $t2, -1         	# Decrementar contador
 bgtz $t2, colorear_fondo    	# Repetir mientras queden píxeles
+
+dibujar_personaje
 
 end:
 j end
