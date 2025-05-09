@@ -13,39 +13,51 @@ y_k: .word 8
 .text
 .globl main 		 	# Variables globales
 main: 
-la $t0, frameBuffer
-lw $t1, color_fondo
-lw $t3, color_kite
+la $s0, frameBuffer
+lw $s1, color_fondo
+lw $s3, color_kite
 
 main_loop:
 li $t2, 256		  	# Esto es el n煤mero de p铆xeles a pintar del fondo (16x16)
 
 colorear_fondo:
 
-sw $t1, 0($t0)            	# Guardar el color en la direcci贸n actual
-addi $t0, $t0, 4          	# Mover a la siguiente posici贸n de p铆xel
+sw $s1, 0($s0)            	# Guardar el color en la direcci贸n actual
+addi $s0, $s0, 4          	# Mover a la siguiente posici贸n de p铆xel
 addi $t2, $t2, -1         	# Decrementar contador
 bgtz $t2, colorear_fondo    	# Repetir mientras queden p铆xeles
 
 
+# Controlador
+
+li $t9, 0xffff0000
+lw $t8, 0($t9)
+beqz $t8, fin_entrada
+
+lw $t8, 4($t9)
+
+
+
+fin_entrada:
+
 dibujar_personaje:
-la $t0, frameBuffer
+la $s0, frameBuffer
 				#Todo esto calcula el n鷐ero de celda a partir de las coordenadas
-lw $t4, x_k
-lw $t5, y_k
+lw $s4, x_k
+lw $s5, y_k
 li $t9, 16
-mult  $t5, $t9
-mflo $t5
-add $t5, $t5, $t4
+mult  $s5, $t9
+mflo $s5
+add $s5, $s5, $s4
 
 				#Calcula el offset correspondiente a dicho n鷐ero de celda
 li $t9, 4
-mult $t5, $t9
+mult $s5, $t9
 mflo $t6
-add $t7, $t0, $t6
+add $t7, $s0, $t6
 
 				#Guarda el color del personaje en la direcci髇 de memoria correspondiente
-sw $t3, 0($t7)
+sw $s3, 0($t7)
 
 end:
 j end
