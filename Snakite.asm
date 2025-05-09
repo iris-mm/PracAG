@@ -6,12 +6,13 @@
 frameBuffer: .space 262144	# El frameBuffer ocupa toda la pantalla, es decir; 256x256 x 4 bytes para cada uno
 color_fondo: .word 0xadd8ff
 color_kite: .word 0xffffff
+color_paredes: .word 0x00FF0000
 
-x_k: .word 8
+x_k: .word 8			# Guardamos variables para las coordenadas x e y del personaje
 y_k: .word 8
 last_direction: .word 0
 .text
-.globl main 		 	# Variables globales
+.globl main 		 	
 main: 
 la $s0, frameBuffer
 lw $s1, color_fondo
@@ -29,12 +30,9 @@ addi $s0, $s0, 4          	# Mover a la siguiente posición de píxel
 addi $t2, $t2, -1         	# Decrementar contador
 bgtz $t2, colorear_fondo    	# Repetir mientras queden píxeles
 
-<<<<<<< Updated upstream
-=======
 colorear_paredes: 
 
 
->>>>>>> Stashed changes
 
 # Controlador
 
@@ -152,6 +150,8 @@ j main_loop
 end:
 li $v0,10
 syscall
+	
+
 	
 
 	
