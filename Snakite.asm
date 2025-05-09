@@ -5,10 +5,13 @@
 	
 .data
 
-frameBuffer: .space 262144	# El frameBuffer ocupa toda la pantalla, es decir; 256x256 x 4 bytes para cada uno
+frameBuffer: .space 1024	# El frameBuffer ocupa toda la pantalla, es decir; 16x16 x 4 bytes para cada uno
 color_fondo: .word 0xadd8ff
-color_kite: .word 0xffffff
+color_kite: .word 0xff0000
 color_paredes: .word 0xffffff
+color_lazo: .word 0xeba1d1
+
+lazo: .word 0
 
 x_k: .word 8			# Guardamos variables para las coordenadas x e y del personaje
 y_k: .word 8
@@ -84,6 +87,8 @@ sw $s2, 0($t0)
 addi $t0, $t0, 64
 addi $t3, $t3, -1
 bgtz $t3, col_inferior
+
+
 
 # Controlador
 
@@ -203,6 +208,20 @@ j main_loop
 end:
 li $v0,10
 syscall
+
+generar_lazo:
+li $v0, 42       # syscall para número aleatorio
+li $a1, 14       # genera número entre 0 y 13
+syscall
+addi $a0, 1
+move $t0, $a0
+
+li $v0, 42       # syscall para número aleatorio
+li $a1, 14       # genera número entre 0 y 13
+syscall
+addi $a0, 1
+move $t1, $a0
+
 	
 
 	
