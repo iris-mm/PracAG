@@ -5,10 +5,13 @@
 	
 .data
 
-frameBuffer: .space 262144	# El frameBuffer ocupa toda la pantalla, es decir; 256x256 x 4 bytes para cada uno
+frameBuffer: .space 1024	# El frameBuffer ocupa toda la pantalla, es decir; 16x16 x 4 bytes para cada uno
 color_fondo: .word 0xadd8ff
-color_kite: .word 0xffffff
+color_kite: .word 0xff0000
 color_paredes: .word 0xffffff
+color_lazo: .word 0xeba1d1
+
+lazo: .word 0
 
 x_k: .word 8			# Guardamos variables para las coordenadas x e y del personaje
 y_k: .word 8
@@ -29,6 +32,11 @@ lw $s2, color_paredes
 lw $s3, color_kite
 
 lw $s6, last_direction
+
+
+
+jal generar_lazo
+lw $s7, lazo
 
 main_loop:
 li $t2, 256		  	# Esto es el número de píxeles a pintar del fondo (16x16)
@@ -84,6 +92,8 @@ sw $s2, 0($t0)
 addi $t0, $t0, 64
 addi $t3, $t3, -1
 bgtz $t3, col_inferior
+
+
 
 # Controlador
 
@@ -181,18 +191,41 @@ lw $s4, x_k
 lw $s5, y_k
 li $t9, 16
 mult  $s5, $t9
-mflo $s5
-add $s5, $s5, $s4
+mflo $t5
+add $t5, $t5, $s4
 
 				# Calcula el offset correspondiente a dicho número de celda
 li $t9, 4
-mult $s5, $t9
+mult $t5, $t9
 mflo $t6
 add $t7, $s0, $t6
 
 				# Guarda el color del personaje en la dirección de memoria correspondiente
 sw $s3, 0($t7)
 
+dibujar_lazo:
+				# Calculo direccion de memoria correspondiente a la casilla del lazo
+li $t0, 4
+mult $s7, $t0
+mflo $t1
+add $t2, $s0, $t1
+
+lw $t0, color_lazo
+sw $t0, 0($t2)			# Se guarda el color del lazo en la posicion correspondiente
+
+colision_lazo:
+lw $s4, x_k			
+lw $s5, y_k
+li $t9, 16
+mult  $s5, $t9
+mflo $t5
+add $t5, $t5, $s4		# Calculo casilla jugador
+
+bne $s7, $t5, seguir		# Se comprueba si la casilla del jugador y la del lazo son iguales
+
+jal generar_lazo
+
+seguir:
 				#Delay de 100 ms para que el juego vaya a una velocidad manejable
 li $v0, 32 			
 li $a0, 100
@@ -203,6 +236,31 @@ j main_loop
 end:
 li $v0,10
 syscall
+
+generar_lazo:
+li $v0, 42       		# syscall para número aleatorio
+li $a1, 14       		# genera número entre 0 y 13
+syscall
+addi $a0, $a0, 1
+move $t0, $a0
+
+li $v0, 42       		# syscall para número aleatorio
+li $a1, 14       		# genera número entre 0 y 13
+syscall
+addi $a0, $a0, 1
+move $t1, $a0
+
+li $t9, 16
+mult  $t1, $t9
+mflo $t1
+add $s7, $t1, $t0		#Calculo casilla lazo
+
+sw $s7, lazo
+
+jr $ra
+
+
+
 	
 
 	
