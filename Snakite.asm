@@ -33,6 +33,11 @@ lw $s3, color_kite
 
 lw $s6, last_direction
 
+
+
+jal generar_lazo
+lw $s7, lazo
+
 main_loop:
 li $t2, 256		  	# Esto es el número de píxeles a pintar del fondo (16x16)
 move $t0, $s0			# Creamos una variable para pintar sin afectar al frameBuffer
@@ -186,18 +191,41 @@ lw $s4, x_k
 lw $s5, y_k
 li $t9, 16
 mult  $s5, $t9
-mflo $s5
-add $s5, $s5, $s4
+mflo $t5
+add $t5, $t5, $s4
 
 				# Calcula el offset correspondiente a dicho número de celda
 li $t9, 4
-mult $s5, $t9
+mult $t5, $t9
 mflo $t6
 add $t7, $s0, $t6
 
 				# Guarda el color del personaje en la dirección de memoria correspondiente
 sw $s3, 0($t7)
 
+dibujar_lazo:
+				# Calculo direccion de memoria correspondiente a la casilla del lazo
+li $t0, 4
+mult $s7, $t0
+mflo $t1
+add $t2, $s0, $t1
+
+lw $t0, color_lazo
+sw $t0, 0($t2)			# Se guarda el color del lazo en la posicion correspondiente
+
+colision_lazo:
+lw $s4, x_k			
+lw $s5, y_k
+li $t9, 16
+mult  $s5, $t9
+mflo $t5
+add $t5, $t5, $s4		# Calculo casilla jugador
+
+bne $s7, $t5, seguir		# Se comprueba si la casilla del jugador y la del lazo son iguales
+
+jal generar_lazo
+
+seguir:
 				#Delay de 100 ms para que el juego vaya a una velocidad manejable
 li $v0, 32 			
 li $a0, 100
@@ -210,17 +238,28 @@ li $v0,10
 syscall
 
 generar_lazo:
-li $v0, 42       # syscall para número aleatorio
-li $a1, 14       # genera número entre 0 y 13
+li $v0, 42       		# syscall para número aleatorio
+li $a1, 14       		# genera número entre 0 y 13
 syscall
-addi $a0, 1
+addi $a0, $a0, 1
 move $t0, $a0
 
-li $v0, 42       # syscall para número aleatorio
-li $a1, 14       # genera número entre 0 y 13
+li $v0, 42       		# syscall para número aleatorio
+li $a1, 14       		# genera número entre 0 y 13
 syscall
-addi $a0, 1
+addi $a0, $a0, 1
 move $t1, $a0
+
+li $t9, 16
+mult  $t1, $t9
+mflo $t1
+add $s7, $t1, $t0		#Calculo casilla lazo
+
+sw $s7, lazo
+
+jr $ra
+
+
 
 	
 
