@@ -32,10 +32,13 @@
 .data
 
 frameBuffer: .space 1024	# El frameBuffer ocupa toda la pantalla, es decir; 16x16 x 4 bytes para cada uno
-color_fondo: .word 0xadd8ff
-color_kite: .word 0xff0000
-color_paredes: .word 0xffffff
-color_lazo: .word 0xeba1d1
+
+colores:.word 0xadd8ff 		# Azul
+	.word 0xff0000		# Rojo
+	.word 0xffffff		# Blanco
+	.word 0xeba1d1		# Rosa
+	
+posiciones: .space 256
 
 lazo: .word 0
 
@@ -53,9 +56,8 @@ j_col: .word 16
 .globl main 		 	
 main: 
 la $s0, frameBuffer
-lw $s1, color_fondo
-lw $s2, color_paredes
-lw $s3, color_kite
+la $s1, colores
+
 
 lw $s6, last_direction
 
@@ -70,7 +72,8 @@ move $t0, $s0			# Creamos una variable para pintar sin afectar al frameBuffer
 
 colorear_fondo:
 
-sw $s1, 0($t0)            	# Guardar el color en la dirección actual
+lw $t3, 0($s1)			# Cargar el color azul del array
+sw $t3, 0($t0)            	# Guardar el color en la dirección actual
 addi $t0, $t0, 4          	# Mover a la siguiente posiciÃ³n de pÃ­xel
 addi $t2, $t2, -1         	# Decrementar contador
 bgtz $t2, colorear_fondo    	# Repetir mientras queden píxeles
@@ -80,11 +83,12 @@ sw $t1, i_fil
 sw $t2, j_col
 li $t3, 16			# Número de píxeles a colorear por fila y columna
 
+lw $t4, 8($s1)			# Cargar color blanco del array
 colorear_paredes: 
 move $t0, $s0			# Reiniciamos $t0 a que apunte al inicio del frameBuffer
 
 fila_superior:				
-sw $s2, 0($t0)
+sw $t4, 0($t0)
 addi $t0, $t0, 4
 addi $t3, $t3, -1
 bgtz $t3, fila_superior
@@ -94,7 +98,7 @@ li $t1, 960			# Reiniciamos en todos los métodos las variables necesarias para p
 add $t0, $s0, $t1
 li $t3, 16
 fila_inferior:				
-sw $s2, 0($t0)
+sw $t4, 0($t0)
 addi $t0, $t0, 4
 addi $t3, $t3, -1
 bgtz $t3, fila_inferior
@@ -103,7 +107,7 @@ bgtz $t3, fila_inferior
 addi $t0, $s0, 0
 li $t3, 16
 col_superior:				
-sw $s2, 0($t0)
+sw $t4, 0($t0)
 addi $t0, $t0, 64
 addi $t3, $t3, -1
 bgtz $t3, col_superior
@@ -114,7 +118,7 @@ add $t0, $s0, $t1
 li $t3, 16
 li $t3, 16
 col_inferior:				
-sw $s2, 0($t0)
+sw $t4, 0($t0)
 addi $t0, $t0, 64
 addi $t3, $t3, -1
 bgtz $t3, col_inferior
@@ -226,8 +230,8 @@ mult $t5, $t9
 mflo $t6
 add $t7, $s0, $t6
 
-				# Guarda el color del personaje en la dirección de memoria correspondiente
-sw $s3, 0($t7)
+lw $t0, 4($s1)			# Cargamos el color rojo del array	
+sw $t0, 0($t7)			# Guarda el color del personaje en la dirección de memoria correspondiente
 
 dibujar_lazo:
 				# Calculo direccion de memoria correspondiente a la casilla del lazo
@@ -236,7 +240,7 @@ mult $s7, $t0
 mflo $t1
 add $t2, $s0, $t1
 
-lw $t0, color_lazo
+lw $t0, 12($s1)			# Cargamos el color rosa del array
 sw $t0, 0($t2)			# Se guarda el color del lazo en la posicion correspondiente
 
 colision_lazo:
