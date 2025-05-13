@@ -1,7 +1,33 @@
-
-	# Hecho por Lucas Lorente e Iris Muñoz
-
-	# Basado en el videojuego "Snake"
+#####################################################################
+#
+# Proyecto de Arquitecturas Gráficas - URJC
+#
+# Autores:
+# - Lorente Herranz, Lucas
+# - Muñoz Montero, Iris
+#
+# Bitmap Display:
+# - Unit width in pixels: 16
+# - Unit height in pixels: 16
+# - Display width in pixels: 256
+# - Display height in pixels: 256
+# - Base Address for Display: 0x10010000 (static data)
+#
+# Máximo objetivo alcanzado en el proyecto:
+# - Juego base/1 ampliación/2 ampliaciones/3 ampliaciones (elegir el que proceda)
+#
+# Ampliaciones implementadas (si hay alguna)
+# - Punto(s) 1/2/3/4... (indicar los que procedan)
+# 3. Presentar objetos rompibles por pantalla que desaparecen al interactuar con ellos.
+#
+# Instrucciones del juego:
+# - El jugador deberá utilizar las teclas 'w', 's', 'a', 'd' para moverse por el espacio.
+#   El objetivo del juego es recolectar los lazos que aparecen aleatoriamente en pantalla
+#   para hacer crecer a la cometa, tratando de no chocar con los límites en el proceso.
+# - EL juego no tiene una condición de victoria, sino que al igual que el snake clásico; es infinito.
+# - El jugador pierde cuando se choca con los límites de la pantalla o con su propio cuerpo
+#
+#####################################################################
 	
 .data
 
