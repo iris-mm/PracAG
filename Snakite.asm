@@ -38,7 +38,7 @@ colores:.word 0xadd8ff 		# Azul
 	.word 0xffffff		# Blanco
 	.word 0xeba1d1		# Rosa
 	
-posiciones: .space 256
+posiciones: .space 256		# Espacio para el array de pos de la cuerda de la cometa
 
 lazo: .word 0
 
@@ -288,7 +288,6 @@ add $s7, $t1, $t0		#Calculo casilla lazo
 sw $s7, lazo
 
 jr $ra
-
 
 
 	
