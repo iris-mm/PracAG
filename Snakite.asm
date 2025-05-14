@@ -14,11 +14,12 @@
 # - Base Address for Display: 0x10010000 (static data)
 #
 # Máximo objetivo alcanzado en el proyecto:
-# - Juego base/1 ampliación/2 ampliaciones/3 ampliaciones (elegir el que proceda)
+# - 2 ampliaciones/ (¿3 ampliaciones?)
 #
 # Ampliaciones implementadas (si hay alguna)
-# - Punto(s) 1/2/3/4... (indicar los que procedan)
 # 3. Presentar objetos rompibles por pantalla que desaparecen al interactuar con ellos.
+# 9. Desarrollar un power-up que aparece aleatoriamente en pantalla y, al ser recogido por el jugador afecta en algo al funcionamiento del juego
+# ¿7.? Distintos modos de dificultad. (Al haber colisiones con el cuerpo, a medida que crece es más difícil no chocarse)
 #
 # Instrucciones del juego:
 # - El jugador deberá utilizar las teclas 'w', 's', 'a', 'd' para moverse por el espacio.
@@ -38,16 +39,16 @@ colores:.word 0xadd8ff 		# Azul
 	.word 0xffffff		# Blanco
 	.word 0xeba1d1		# Rosa
 	
-posiciones: .space 256		# Espacio para el array de pos de la cuerda de la cometa
+posiciones: .space 256		# Espacio para el array de pos de la cuerda de la cometa. (256 posiciones como maximo, 1 byte por posicion)
 
 longitud: .word 1
 
-lazo: .word 0
+lazo: .word 0			# Casilla ocupada por el lazo
 
 x_k: .word 8			# Guardamos variables para las coordenadas x e y del personaje
 y_k: .word 8
 
-last_direction: .word 0
+last_direction: .word 0		# Representacion de la ultima direccion en la que se movio el jugador
 
 
 i_fil: .word 16			# Creamos dos variables para recorrer las filas y las columnas del tablero
@@ -83,9 +84,9 @@ colorear_fondo:
 
 lw $t3, 0($s1)			# Cargar el color azul del array
 sw $t3, 0($t0)            	# Guardar el color en la dirección actual
-addi $t0, $t0, 4          	# Mover a la siguiente posiciÃ³n de pÃ­xel
+addi $t0, $t0, 4          	# Mover a la siguiente posicion de pixel
 addi $t2, $t2, -1         	# Decrementar contador
-bgtz $t2, colorear_fondo    	# Repetir mientras queden píxeles
+bgtz $t2, colorear_fondo    	# Repetir mientras queden pixeles
 
 ################		# Cargamos i y j
 sw $t1, i_fil
@@ -136,7 +137,7 @@ bgtz $t3, col_inferior
 
 li $t9, 0xffff0000
 lw $t8, 0($t9)			#Cargar estado de la entrada
-beqz $t8, movimiento		#Saltar secciÃ³n si no se pulsa ninguna tecla
+beqz $t8, movimiento		#Saltar seccion si no se pulsa ninguna tecla
 
 lw $t8, 4($t9)			#Cargar tecla pulsada
 
@@ -147,8 +148,8 @@ beq $t8, 119, arriba
 beq $t8, 115, abajo 
 j movimiento
 
-				#Todas estas secciones cambian la direcciÃ³n mÃ¡s reciente a la correspondiente
-				#a la de la direcciÃ³n pulsada (no permite giros de 180Âº)
+				#Todas estas secciones cambian la direccion mas reciente a la correspondiente
+				#a la de la direccon pulsada (no permite giros de 180 grados)
 izquierda:
 beq $s6, 100, movimiento
 move $s6, $t8
@@ -177,7 +178,7 @@ j movimiento
 movimiento:
 lw $s6, last_direction
 
-				#Ejecuta la secciÃ³n correspondiente a la direcciÃ³n reciente
+				#Ejecuta la seccion correspondiente a la direccion reciente
 beq $s6, 97, m_izquierda 
 beq $s6, 100, m_derecha
 beq $s6, 119, m_arriba
@@ -185,7 +186,7 @@ beq $s6, 115, m_abajo
 j colisiones
 
 				#Todas estas funciones actualizan las coordenadas x e y del personaje,
-				#moviÃ©ndolo en la direcciÃ³n correspondiente
+				#moviÃ©ndolo en la direccion correspondiente
 m_izquierda:
 lw $t0, x_k
 addi $t0, $t0, -1
@@ -218,19 +219,19 @@ lw $s3, longitud
 li $t1, 1
 beq $s3, $t1, insertar_nueva_posicion
 				# Mover las posiciones del cuerpo una casilla hacia atrás
-move $t1, $s3   			# $t1 = longitud
-addi $t1, $t1, -1			# Última posición válida
+move $t1, $s3   		
+addi $t1, $t1, -1		# Última posición válida
 add $t0, $s2, $t1   		# $t0 apunta a la última posición válida del cuerpo
 
 
 mover_posiciones:
 bltz $t1, insertar_nueva_posicion  # Si $t1 < 0, termina
 
-lbu $t2, -1($t0)         # Leer la posición anterior
-sb $t2, 0($t0)          # Guardarla en la posición actual
+lbu $t2, -1($t0)         	# Leer la posición anterior
+sb $t2, 0($t0)         	 	# Guardarla en la posición actual
 
-addi $t0, $t0, -1       # Retroceder al segmento anterior
-addi $t1, $t1, -1       # Decrementar contador
+addi $t0, $t0, -1      	 	# Retroceder al segmento anterior
+addi $t1, $t1, -1       	# Decrementar contador
 j mover_posiciones
 
 				
@@ -247,28 +248,28 @@ sb $t5, 0($s2)           	# Insertar la nueva posición en el array de posiciones
 
 colisiones:
 
-# === Comprobar colisión con el cuerpo ===
+				# Comprobar colisión con el cuerpo
 lw $s4, x_k
 lw $s5, y_k
 li $t9, 16
 mult $s5, $t9
 mflo $t5
-add $t5, $t5, $s4      # $t5 = posición actual (0-255)
+add $t5, $t5, $s4      		# Posición actual (0-255)
 
-# Recorrer posiciones[1..longitud-1]
-li $t0, 1              # índice desde 1 (ignoramos cabeza)
+
+li $t0, 1              		# índice desde 1 (ignoramos cabeza)
 lw $t1, longitud
-addi $t1, $t1, -1      # hasta longitud - 1
+addi $t1, $t1, -1      		# hasta longitud - 1
 
-la $t2, posiciones     # $t2 apunta al array
+la $t2, posiciones     
 
-comprobar_cuerpo:
+comprobar_cuerpo:		# Bucle que recorre las posiciones del array para comprobar si la cabeza está en la misma posición que alguna
 bgt $t0, $t1, continuar_colisiones
 
-add $t3, $t2, $t0      # dirección de posiciones[i]
-lbu $t4, 0($t3)        # valor de posiciones[i]
+add $t3, $t2, $t0      		# Dirección de posiciones[i]
+lbu $t4, 0($t3)        		# Valor de posiciones[i]
 
-beq $t4, $t5, end      # si coincide con posición actual, fin
+beq $t4, $t5, end      		# Si coincide con posición actual, fin
 
 addi $t0, $t0, 1
 j comprobar_cuerpo
@@ -302,30 +303,26 @@ mult  $s5, $t9
 mflo $t5
 add $t5, $t5, $s4		# Calculo casilla jugador
 
-bne $s7, $t5, eliminar_cuerpo	# Se comprueba si la casilla del jugador y la del lazo son iguales, si lo son, se aumenta la longitud
+bne $s7, $t5, dibujar_personaje	# Se comprueba si la casilla del jugador y la del lazo son iguales, si lo son, se aumenta la longitud
 
 lw $s3, longitud
 addi $s3, $s3, 1
 sw $s3, longitud		# Se guarda la nueva longitud
 
-addi $t4, $s3, -2          # $s3 ya es longitud nueva, así que el anterior es -2
-bltz $t4, skip_copy        # Si era la primera (no hay anterior), no copiar
 
-add $t5, $s2, $t4          # Dirección de la posición anterior
-lbu $t6, 0($t5)            # Cargar valor de la posición anterior
+				# Cuando se crece, añadir una copia de una posicion al array
+addi $t4, $s3, -2          	# $s3 ya es longitud nueva, así que el anterior es -2
+bltz $t4, skip_copy        	# Si era la primera (no hay anterior), no copiar
 
-add $t7, $s2, $s3          # Dirección de la nueva posición (fuera de rango real)
-addi $t7, $t7, -1          # Apunta al nuevo segmento
-sb $t6, 0($t7)             # Guardar copia en el nuevo segmento
+add $t5, $s2, $t4          	# Dirección de la posición anterior
+lbu $t6, 0($t5)            	# Cargar valor de la posición anterior
+
+add $t7, $s2, $s3          	# Dirección de la nueva posición (fuera de rango real)
+addi $t7, $t7, -1         	# Apunta al nuevo segmento
+sb $t6, 0($t7)             	# Guardar copia en el nuevo segmento
 
 skip_copy:
-# Borrar el lazo de la pantalla (pintar azul)
-li $t3, 4
-mult $s7, $t3
-mflo $t4
-add $t5, $s0, $t4
-lw $t6, 0($s1)       # color azul
-sw $t6, 0($t5)
+
 
 add $t0, $s3, $s2	
 sb $zero, 0($t0)		# Se borran los datos de la casilla situada fuera del limite de la longitud
@@ -334,26 +331,7 @@ jal generar_lazo
 
 j dibujar_personaje
 
-eliminar_cuerpo:
-# Cargar la longitud
-lw $t0, longitud       # $t0 = longitud
-addi $t0, $t0, -1
 
-# Acceder a la posición justo después del último segmento
-add $t1, $s2, $t0      # Dirección del byte que queremos pintar (posiciones[longitud])
-lbu $t2, 0($t1)         # $t2 = valor de la casilla a pintar (número de celda 0-255)
-
-
-# Calcular dirección en el framebuffer (4 bytes por píxel)
-li $t3, 4
-mult $t2, $t3
-mflo $t4               # $t4 = offset dentro del framebuffer
-
-add $t5, $s0, $t4      # $t5 = dirección real en framebuffer para pintar
-
-# Pintar la celda con el color de fondo (azul)
-lw $t6, 0($s1)         # color azul (primer color de 'colores')
-sw $t6, 0($t5)         # guardar el color en la posición correspondiente
 
 dibujar_personaje:
 la $s0, frameBuffer
@@ -379,9 +357,9 @@ j bucle_dibujo
 fin_dibujo:
 
 delay:
-				#Delay de 100 ms para que el juego vaya a una velocidad manejable
+				# Delay de 120 ms para que el juego vaya a una velocidad manejable
 li $v0, 32 			
-li $a0, 100
+li $a0, 120
 syscall
 
 j main_loop
@@ -406,7 +384,7 @@ move $t1, $a0
 li $t9, 16
 mult  $t1, $t9
 mflo $t1
-add $s7, $t1, $t0		#Calculo casilla lazo
+add $s7, $t1, $t0		# Calculo casilla lazo
 
 sw $s7, lazo
 
